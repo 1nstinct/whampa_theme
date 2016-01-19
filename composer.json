@@ -1,0 +1,33 @@
+{
+    "name": "whampa/theme",
+    "description": "A simple Laravel 4 service provider for generating blade templates.",
+    "keywords": ["laravel", "laravel 4"],
+    "authors": [
+        {
+            "name": "QCoders",
+            "email": "yura.syedin@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "4.2.*",
+        "illuminate/view": "4.2.*",
+        "ceesvanegmond/minify": "2.0.*"
+    },
+    "require-dev": {
+        "laravel/framework": "~4.2",
+        "phpunit/phpunit": "~4.0"
+    },
+    "autoload": {
+        "classmap": [
+            "src/migrations"
+        ],
+        "psr-0": {
+            "Whampa\\Theme\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": { "Whampa\\Theme\\": "tests/" }
+    },
+    "minimum-stability": "stable"
+}
