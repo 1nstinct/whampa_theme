@@ -24,6 +24,9 @@
         ],
         "psr-0": {
             "Whampa\\Theme\\": "src/"
+        },
+        "psr-4": {
+            "Whampa\\Facades\\": "Facades/"
         }
     },
     "autoload-dev": {
