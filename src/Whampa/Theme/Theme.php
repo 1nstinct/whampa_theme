@@ -32,14 +32,20 @@ class Theme
 		$this->view = $view;
 		$this->config = $config;
 		$this->environment = $env;
+
+		if($this->config->get('theme::view_root')) {
+			$this->view->addNamespace('theme_custom', __DIR__.'/../../views'.$this->config->get('theme::view_root'));
+		}
 	}
 
 	public function __call($name, $arguments)
 	{
-		$class = "Whampa\\Theme\\Element\\$name";
-		$widget = new $class($arguments, $this->view, $this->config);
-		$widget->render();
-		$this->widgetCallStack = array_merge($this->widgetCallStack, array($name));
+		if ($this->config->get('theme::enabled', true)) {
+			$class = "Whampa\\Theme\\Element\\$name";
+			$widget = new $class($arguments, $this->view, $this->config);
+			$widget->render();
+			$this->widgetCallStack = array_merge($this->widgetCallStack, array($name));
+		}
 	}
 
 	/**
@@ -75,6 +81,12 @@ class Theme
 				$class = "Whampa\\Theme\\Element\\$widgetName";
 				$additionalCss = array_merge($additionalCss, $class::$composer['css']);
 			}
+
+			if($this->config->get('theme::global_css')) {
+				foreach($this->config->get('theme::global_css') as $GlobalCss) {
+					$additionalCss[] = $GlobalCss;
+				}
+			}
 			echo $this->view->make('theme::CssGeneric', array('theme' => ($this->config->get('theme::theme')) ? $this->config->get('theme::theme') : '', 'minified' => $this->config->get('theme::minified'), 'additionalCss' => array_unique($additionalCss)))->render();
 		}
 	}
@@ -92,6 +104,11 @@ class Theme
 				$class = "Whampa\\Theme\\Element\\$widgetName";
 				$additionalJs = array_merge($additionalJs, $class::$composer['js']);
 			}
+			if($this->config->get('theme::global_js')) {
+				foreach($this->config->get('theme::global_js') as $GlobalJs) {
+					$additionalJs[] = $GlobalJs;
+				}
+			}
 			echo $this->view->make('theme::JsGeneric', array('minified' => $this->config->get('theme::minified'), 'additionalJs' => array_unique($additionalJs)))->render();
 		}
 	}
@@ -104,7 +121,13 @@ class Theme
 	public function loadFonts()
 	{
 		if($this->widgetCallStack && count($this->widgetCallStack)) {
-			echo $this->view->make('theme::FontGeneric')->render();
+			$fonts = [];
+			if($this->config->get('theme::global_fonts')) {
+				foreach($this->config->get('theme::global_fonts') as $GlobalFont) {
+					$fonts[] = $GlobalFont;
+				}
+			}
+			echo $this->view->make('theme::FontGeneric', array('additionalFonts' => $fonts))->render();
 		}
 	}
 

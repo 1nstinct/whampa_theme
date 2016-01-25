@@ -24,7 +24,7 @@ class ProgressBar extends Base
 			'Element/ProgressBar.css'
 		),
 		'js' => array(
-			'libs/jquery-2.1.1.js',
+			'libs/jquery-2.0.2.min.js',
 			'bootstrap/bootstrap.js',
 			'Element/ProgressBar.js'
 		)
@@ -51,8 +51,6 @@ class ProgressBar extends Base
 	 * @return void
 	 */
 	public function render() {
-		if ($this->getConfig()->get('theme::enabled', true)) {
-			echo $this->getView()->make('theme::'.self::WIDGET_NAME, array('percents' => $this->percents, 'variable' => $this->variable))->render();
-		}
+		echo $this->getView()->make($this->namespace.'::'.self::WIDGET_NAME, array('percents' => $this->percents, 'variable' => $this->variable))->render();
 	}
 }

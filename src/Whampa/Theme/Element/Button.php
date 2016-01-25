@@ -24,7 +24,7 @@ class Button extends Base
 			'Element/Button.css'
 		),
 		'js' => array(
-			'libs/jquery-2.1.1.js',
+			'libs/jquery-2.0.2.min.js',
 			'bootstrap/bootstrap.js',
 			'Element/Button.js'
 		)
@@ -48,8 +48,6 @@ class Button extends Base
 	 * @return \Illuminate\View\View Rendering a widget
 	 */
 	public function render() {
-		if ($this->getConfig()->get('theme::enabled', true)) {
-			echo $this->getView()->make('theme::'.self::WIDGET_NAME, array('type' => $this->type))->render();
-		}
+		echo $this->getView()->make($this->namespace.'::'.self::WIDGET_NAME, array('type' => $this->type))->render();
 	}
 }

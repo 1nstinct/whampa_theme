@@ -103,7 +103,6 @@ class MyMinify extends Minify
 
 		if (count($files) > 0)
 		{
-			rsort($files);
 			$this->process($files);
 		}
 

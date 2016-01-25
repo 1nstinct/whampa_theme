@@ -13,6 +13,10 @@ abstract class Base {
 	 */
 	private $view;
 	/**
+	 * @var bool Namespace for views
+	 */
+	public $namespace = false;
+	/**
 	 * @var array List of generic arguments
 	 */
 	protected $args = [];
@@ -51,6 +55,13 @@ abstract class Base {
 		$this->setView($view);
 		// config initializing
 		$this->setConfig($config);
+		// initialize views in custom namespace
+		$namespaces = $view->getFinder()->getHints();
+		if(isset($namespaces['theme_custom'])) {
+			$this->namespace = 'theme_custom';
+		} else {
+			$this->namespace = 'theme';
+		}
 	}
 
 	/**
