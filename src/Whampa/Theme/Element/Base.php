@@ -2,97 +2,158 @@
 
 use Illuminate\View\Factory;
 use Illuminate\Config\Repository;
+use Whampa\Theme\ThemeException;
 
-abstract class Base {
-	/**
-	 * @var string Name of widget
-	 */
-	protected $name;
+abstract class Base
+{
 	/**
 	 * @var Factory Illuminate view environment
 	 */
 	private $view;
+
 	/**
-	 * @var bool Namespace for views
+	 * @var string Namespace for views
 	 */
-	public $namespace = false;
+	private $namespace = 'theme';
+
+	/**
+	 * @var array List of widget arguments
+	 */
+	protected $widgetArgs = [];
+
 	/**
 	 * @var array List of generic arguments
 	 */
-	protected $args = [];
+	protected $genericArgs = [];
+
 	/**
 	 * @var array Application's configurations
 	 */
 	private $config = [];
+
 	/**
-	 * @var array List of 3d part libs additional css, js files
+	 * Available tooltip positions
 	 */
-	public static $composer = array(
-		'css' => array(
-
-		),
-		'js' => array(
-
-		)
+	protected $avlTooltipPositions = array(
+		'left',
+		'right',
+		'top',
+		'bottom'
 	);
+
 	/**
 	 * Create a new instance of Base element.
 	 *
 	 * @return void
 	 */
-	public function __construct($arg, Factory $view, Repository $config)
+	public function __construct(&$args, Factory $view, Repository $config)
 	{
-		// initialize generic variables from passed arguments
-		$generic_attributes = end($arg);
-		// check if generic attributes were defined
-		if (count($arg) > 1 && is_array($generic_attributes)) {
-			foreach ($generic_attributes as $index => $value) {
-				$this->args[$index] = $value;
-			}
-			reset($arg);
-		}
+		// initialize generic arguments
+		$this->initGenericArgs($args);
 		// view initializing
 		$this->setView($view);
 		// config initializing
 		$this->setConfig($config);
-		// initialize views in custom namespace
-		$namespaces = $view->getFinder()->getHints();
-		if(isset($namespaces['theme_custom'])) {
-			$this->namespace = 'theme_custom';
-		} else {
-			$this->namespace = 'theme';
-		}
+		// initializing namespace of views
+		$this->setNamespace();
 	}
 
 	/**
 	 * @param $view View getter
 	 */
-	protected function setView($view) {
+	final protected function setView($view)
+	{
 		$this->view = $view;
 	}
 
 	/**
 	 * @return Factory View setter
 	 */
-	protected function getView() {
+	final protected function getView()
+	{
 		return $this->view;
 	}
+
 	/**
 	 * @param $config Configuration getter
 	 */
-	protected function setConfig($config) {
+	final protected function setConfig($config)
+	{
 		$this->config = $config;
 	}
 
 	/**
 	 * @return Factory Configuration setter
 	 */
-	protected function getConfig() {
+	final protected function getConfig()
+	{
 		return $this->config;
 	}
 
 	/**
-	 * @return mixed Rendering widget
+	 * @return string Returns initialized namespace of views
 	 */
-	abstract public function render();
+	final protected function getNamespace()
+	{
+		return $this->namespace;
+	}
+
+	/**
+	 * Initializing namespace for views according to config file
+	 */
+	final protected function setNamespace()
+	{
+		$namespaces = $this->getView()->getFinder()->getHints();
+		if (isset($namespaces['theme_custom'])) {
+			$this->namespace = 'theme_custom';
+		}
+	}
+
+	/**
+	 * @return mixed Returns array of CSS and JS 3d party or not files for each widget
+	 */
+	public static function getWidgetFiles() {}
+
+	/**
+	 * @return \Illuminate\View\View Rendering a widget
+	 */
+	final public function render()
+	{
+		echo $this->getView()->make(
+			$this->getNamespace() . '::' . static::WIDGET_NAME,
+			$this->widgetArgs
+		)->render();
+	}
+
+	/**
+	 * Initialize generic arguments
+	 *
+	 * @param array $args
+	 */
+	final public function initGenericArgs(array &$args)
+	{
+		if (!empty($args[count($this->widgetArgs) - 1]) && count($args) == count($this->widgetArgs)) {
+			// initialize generic variables from passed arguments
+			$generic_attributes = end($args);
+			if(is_array($generic_attributes)) {
+				foreach ($generic_attributes as $index => $value) {
+					$this->genericArgs[$index] = $value;
+				}
+			} else {
+				throw new ThemeException('Last argument (genericArgs) for '.static::WIDGET_NAME.' element has to be an array');
+			}
+			reset($args);
+			unset($args[count($this->widgetArgs) - 1]); // unset key for generic arguments, because it is already initialized
+		}
+	}
+
+	/**
+	 * Returns filled array of generic arguments
+	 *
+	 * @return array
+	 */
+	final protected function getGenericArgs()
+	{
+		return $this->genericArgs;
+	}
 }

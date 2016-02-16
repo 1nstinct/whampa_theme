@@ -1,48 +1,25 @@
 <?php namespace Whampa\Theme;
 
-use Illuminate\View\Factory;
-use Illuminate\Config\Repository;
-
 include 'MyMinify.php';
 class Theme
 {
-	/**
-	 * Illuminate view environment.
-	 *
-	 * @var Factory
-	 */
-	protected $view;
-	/**
-	 * Application configurations
-	 *
-	 * @var array
-	 */
-	protected $config = [];
-	/**
-	 * @var string Application environment
-	 */
-	protected $environment;
+	protected $app;
 	/**
 	 * @var array List of requested widgets
 	 */
 	private $widgetCallStack = [];
 
-	public function __construct(Factory $view, Repository $config, $env)
+	public function __construct($app)
 	{
-		$this->view = $view;
-		$this->config = $config;
-		$this->environment = $env;
-
-		if($this->config->get('theme::view_root')) {
-			$this->view->addNamespace('theme_custom', __DIR__.'/../../views'.$this->config->get('theme::view_root'));
-		}
+		$this->app = $app;
+		$this->initNamespace();
 	}
 
 	public function __call($name, $arguments)
 	{
-		if ($this->config->get('theme::enabled', true)) {
+		if ($this->app['config']->get('theme::enabled', true)) {
 			$class = "Whampa\\Theme\\Element\\$name";
-			$widget = new $class($arguments, $this->view, $this->config);
+			$widget = new $class($arguments, $this->app['view'], $this->app['config']);
 			$widget->render();
 			$this->widgetCallStack = array_merge($this->widgetCallStack, array($name));
 		}
@@ -55,7 +32,7 @@ class Theme
 	 */
 	public function enable()
 	{
-		$this->config->set('theme::enabled', true);
+		$this->app['config']->set('theme::enabled', true);
 	}
 
 	/**
@@ -65,7 +42,17 @@ class Theme
 	 */
 	public function disable()
 	{
-		$this->config->set('theme::enabled', false);
+		$this->app['config']->set('theme::enabled', false);
+	}
+
+	/**
+	 * If custom view root is set in config file - add it to namespace
+	 */
+	final private function initNamespace()
+	{
+		if($this->app['config']->get('theme::view_root')) {
+			$this->app['view']->addNamespace('theme_custom', __DIR__.'/../../views'.$this->app['config']->get('theme::view_root'));
+		}
 	}
 
 	/**
@@ -79,15 +66,15 @@ class Theme
 			$additionalCss = array();
 			foreach($this->widgetCallStack as $widgetName) {
 				$class = "Whampa\\Theme\\Element\\$widgetName";
-				$additionalCss = array_merge($additionalCss, $class::$composer['css']);
+				$additionalCss = array_merge($additionalCss, $class::getWidgetFiles()['css']);
 			}
 
-			if($this->config->get('theme::global_css')) {
-				foreach($this->config->get('theme::global_css') as $GlobalCss) {
+			if($this->app['config']->get('theme::global_css')) {
+				foreach($this->app['config']->get('theme::global_css') as $GlobalCss) {
 					$additionalCss[] = $GlobalCss;
 				}
 			}
-			echo $this->view->make('theme::CssGeneric', array('theme' => ($this->config->get('theme::theme')) ? $this->config->get('theme::theme') : '', 'minified' => $this->config->get('theme::minified'), 'additionalCss' => array_unique($additionalCss)))->render();
+			echo $this->app['view']->make('theme::CssGeneric', array('theme' => ($this->app['config']->get('theme::theme')) ? $this->app['config']->get('theme::theme') : '', 'minified' => $this->app['config']->get('theme::minified'), 'additionalCss' => array_unique($additionalCss)))->render();
 		}
 	}
 
@@ -102,14 +89,14 @@ class Theme
 			$additionalJs = array();
 			foreach($this->widgetCallStack as $widgetName) {
 				$class = "Whampa\\Theme\\Element\\$widgetName";
-				$additionalJs = array_merge($additionalJs, $class::$composer['js']);
+				$additionalJs = array_merge($additionalJs, $class::getWidgetFiles()['js']);
 			}
-			if($this->config->get('theme::global_js')) {
-				foreach($this->config->get('theme::global_js') as $GlobalJs) {
+			if($this->app['config']->get('theme::global_js')) {
+				foreach($this->app['config']->get('theme::global_js') as $GlobalJs) {
 					$additionalJs[] = $GlobalJs;
 				}
 			}
-			echo $this->view->make('theme::JsGeneric', array('minified' => $this->config->get('theme::minified'), 'additionalJs' => array_unique($additionalJs)))->render();
+			echo $this->app['view']->make('theme::JsGeneric', array('minified' => $this->app['config']->get('theme::minified'), 'additionalJs' => array_unique($additionalJs)))->render();
 		}
 	}
 
@@ -122,12 +109,12 @@ class Theme
 	{
 		if($this->widgetCallStack && count($this->widgetCallStack)) {
 			$fonts = [];
-			if($this->config->get('theme::global_fonts')) {
-				foreach($this->config->get('theme::global_fonts') as $GlobalFont) {
+			if($this->app['config']->get('theme::global_fonts')) {
+				foreach($this->app['config']->get('theme::global_fonts') as $GlobalFont) {
 					$fonts[] = $GlobalFont;
 				}
 			}
-			echo $this->view->make('theme::FontGeneric', array('additionalFonts' => $fonts))->render();
+			echo $this->app['view']->make('theme::FontGeneric', array('additionalFonts' => $fonts))->render();
 		}
 	}
 
@@ -136,7 +123,7 @@ class Theme
 	 */
 	public function MinifyCss($file)
 	{
-		$minify = new \MyMinify($this->environment);
+		$minify = new \MyMinify($this->app->environment());
 		return $minify->stylesheet($file);
 	}
 
@@ -145,7 +132,7 @@ class Theme
 	 */
 	public function MinifyJs($file)
 	{
-		$minify = new \MyMinify($this->environment);
+		$minify = new \MyMinify($this->app->environment());
 		return $minify->javascript($file);
 	}
 
@@ -155,7 +142,7 @@ class Theme
 	 */
 	public function stylesheetArray($array)
 	{
-		$minify = new \MyMinify($this->environment);
+		$minify = new \MyMinify($this->app->environment());
 		return $minify->stylesheetArray($array);
 	}
 
@@ -165,7 +152,7 @@ class Theme
 	 */
 	public function javascriptArray($array)
 	{
-		$minify = new \MyMinify($this->environment);
+		$minify = new \MyMinify($this->app->environment());
 		return $minify->javascriptArray($array);
 	}
 }

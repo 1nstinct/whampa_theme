@@ -1,1 +1,1 @@
-<a class="btn btn-{{$type}} btn-lg" href="javascript:void(0);">111111</a>
+<a class="btn btn-{{$type}} {{$size}} {{$disabled}} {{$circle}}" href="javascript:void(0);">{{$innerHtml}}</a>

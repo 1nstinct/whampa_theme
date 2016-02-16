@@ -1,0 +1,1 @@
+rel="tooltip" data-placement="{{$placement}}" data-original-title="{{$contentHtml}}" @if($asHtml)data-html="true"@endif

@@ -2,6 +2,7 @@
 
 use Illuminate\View\Factory;
 use Illuminate\Config\Repository;
+use Whampa\Theme\ThemeException;
 
 class Button extends Base
 {
@@ -9,45 +10,61 @@ class Button extends Base
 	 * Required name of widget
 	 */
 	const WIDGET_NAME = 'Button';
+
 	/**
-	 * @var string Type of button
+	 * @var array List of widget arguments
 	 */
-	protected $type = 'default';
+	protected $widgetArgs = [
+		'innerHtml' => '', // Text or HTML to display inside of element
+		'type' => 'default', // Button type
+		'size' => 'default', // Size of button
+		'disabled' => '', // Element disabled or not
+		'circle' => '' // Button is circle format or not
+	];
+
 	/**
-	 * @var array List of 3d part libs additional css, js files
+	 * @var array Available sizes
 	 */
-	public static $composer = array(
-		'css' => array(
-			'bootstrap.css',
-			'smartadmin-production.css',
-			'smartadmin-skins.css',
-			'Element/Button.css'
-		),
-		'js' => array(
-			'libs/jquery-2.0.2.min.js',
-			'bootstrap/bootstrap.js',
-			'Element/Button.js'
-		)
+	private $avlSizes = array(
+		'default' => '',
+		'large' => 'btn-lg',
+		'small' => 'btn-sm',
+		'mini' => 'btn-xs'
 	);
+
 	/**
-	 * Create a new instance of Progress Bar Widget.
+	 * Create a new instance of Widget.
 	 *
 	 * @param  float $percent
 	 * @param  array $args
 	 * @return void
 	 */
-	public function __construct($arg, Factory $view, Repository $config)
+	public function __construct(&$args, Factory $view, Repository $config)
 	{
-		parent::__construct($arg, $view, $config);
+		parent::__construct($args, $view, $config);
 		// initializing unique to widget variables
-		if(isset($arg[0])) $this->type = $arg[0];
-
+		if (isset($args[0])) $this->widgetArgs['innerHtml'] = $args[0];
+		else throw new ThemeException('First argument (InnerHTML) is required for '.self::WIDGET_NAME.' element');
+		if (isset($args[1])) $this->widgetArgs['type'] = $args[1];
+		if (isset($args[2]) && isset($this->avlSizes[$args[2]])) $this->widgetArgs['size'] = $this->avlSizes[$args[2]];
+		if (isset($args[3]) && $args[3] == true) $this->widgetArgs['disabled'] = 'disabled';
+		if (isset($args[4]) && $args[4] == true) $this->widgetArgs['circle'] = 'btn-circle';
 	}
 
 	/**
-	 * @return \Illuminate\View\View Rendering a widget
+	 * Returns list of 3d part libs, additional CSS, JS files
+	 *
+	 * @return array List of libs
 	 */
-	public function render() {
-		echo $this->getView()->make($this->namespace.'::'.self::WIDGET_NAME, array('type' => $this->type))->render();
+	public static function getWidgetFiles()
+	{
+		return array(
+			'css' => array(
+				'bootstrap.css',
+				'smartadmin-production.css',
+				'Element/Button.css'
+			),
+			'js' => array()
+		);
 	}
 }

@@ -31,7 +31,7 @@ class ThemeServiceProvider extends ServiceProvider {
 	{
 		$this->app->bindShared('theme', function($app)
 		{
-			return new Theme($app['view'], $app['config'], $app->environment());
+			return new Theme($app);
 		});
 	}
 
