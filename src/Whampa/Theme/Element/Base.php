@@ -123,7 +123,6 @@ abstract class Base
 			$this->getNamespace() . '::' . static::WIDGET_NAME,
 			$this->widgetArgs
 		)->render();
-
 	}
 
 	/**
