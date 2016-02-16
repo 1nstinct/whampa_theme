@@ -2,7 +2,6 @@
 
 use Illuminate\View\Factory;
 use Illuminate\Config\Repository;
-use Whampa\Theme\ThemeException;
 
 class Well extends Base
 {
