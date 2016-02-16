@@ -132,7 +132,7 @@ abstract class Base
 	 */
 	final public function initGenericArgs(array &$args)
 	{
-		if (!empty($args[count($this->widgetArgs) - 1]) && count($args) == count($this->widgetArgs)) {
+		if (isset($args[count($this->widgetArgs)]) && count($args) == count($this->widgetArgs) + 1) {
 			// initialize generic variables from passed arguments
 			$generic_attributes = end($args);
 			if(is_array($generic_attributes)) {
@@ -143,7 +143,7 @@ abstract class Base
 				throw new ThemeException('Last argument (genericArgs) for '.static::WIDGET_NAME.' element has to be an array');
 			}
 			reset($args);
-			unset($args[count($this->widgetArgs) - 1]); // unset key for generic arguments, because it is already initialized
+			unset($args[count($this->widgetArgs)]); // unset key for generic arguments, because it is already initialized
 		}
 	}
 
