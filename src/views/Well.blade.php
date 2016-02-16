@@ -1,0 +1,1 @@
+<div class="well @if($size)well-{{$size}}@endif {{$addClasses}}">{{$bodyHtml}}</div>
