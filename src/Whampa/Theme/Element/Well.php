@@ -39,7 +39,7 @@ class Well extends Base
 	{
 		parent::__construct($args, $view, $config);
 		// initializing unique to widget variables
-		if (!empty($args[0]) && in_array($args[0], $this->avlSizes)) $this->widgetArgs['size'] = $this->avlSizes[$args[0]];
+		if (!empty($args[0]) && isset($this->avlSizes[$args[0]])) $this->widgetArgs['size'] = $this->avlSizes[$args[0]];
 		if (!empty($args[1])) $this->widgetArgs['bodyHtml'] = $args[1];
 		if (!empty($args[2])) $this->widgetArgs['addClasses'] = $args[2];
 	}
