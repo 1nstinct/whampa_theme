@@ -1,0 +1,1 @@
+<span class="badge @if($color)bg-color-{{$color}}@endif">{{$text}}</span>
